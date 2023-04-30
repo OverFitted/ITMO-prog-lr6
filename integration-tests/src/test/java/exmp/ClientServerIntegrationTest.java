@@ -11,8 +11,11 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -115,6 +118,78 @@ public class ClientServerIntegrationTest {
 
         assertNotEquals(expectedResult1.getOutput(), result1.getOutput());
         assertNotEquals(expectedResult2.getOutput(), result2.getOutput());
+    }
+
+    @Test
+    public void testCommandExecError() throws  IOException, ClassNotFoundException{
+        logger.debug("Testing command execution with wrong args...");
+
+        String commandName = "show";
+        String commandInput = "1 2 3 4 5";
+
+        sendCommand(commandName, commandInput);
+        CommandResult result = sendCommand(commandName, commandInput);
+
+        String commandName2 = "filter_by_unit_of_measure";
+        String commandInput2 = "1 2 3 4 5";
+
+        sendCommand(commandName2, commandInput2);
+        CommandResult result2 = sendCommand(commandName2, commandInput2);
+
+        assertNotEquals(0, result.getStatusCode());
+        assertNotEquals(0, result2.getStatusCode());
+    }
+
+    @Test
+    public void testCommandNotExist() throws  IOException, ClassNotFoundException{
+        logger.debug("Testing not existing command...");
+
+        CommandResult result = app.executeCommand("fake", "command");
+
+        String commandName = "fake";
+        String commandInput = "command";
+
+        sendCommand(commandName, commandInput);
+        CommandResult result2 = sendCommand(commandName, commandInput);
+
+        assertNotEquals(0, result.getStatusCode());
+        assertNotEquals(0, result2.getStatusCode());
+    }
+
+    @Test
+    public void testProductAddError() throws  IOException, ClassNotFoundException{
+        logger.debug("Testing product adding with wrong args...");
+
+        String commandName = "add";
+        String commandInput = "1 2 3";
+
+        sendCommand(commandName, commandInput);
+        CommandResult result = sendCommand(commandName, commandInput);
+
+        assertNotEquals(0, result.getStatusCode());
+    }
+
+    @Test
+    public void testProductCount() throws  IOException, ClassNotFoundException{
+        logger.debug("Testing product count...");
+        Pattern pattern = Pattern.compile("\\d+");
+
+        int currentProductsCountNaive = app.getProductRepository().findAll().size();
+
+        Matcher matcherClient = pattern.matcher(app.executeCommand("info", "").getOutput());
+        int currentProductsCountClient = 0;
+        while (matcherClient.find()) {
+            currentProductsCountClient = Integer.parseInt(matcherClient.group());
+        }
+
+        Matcher matcherServer = pattern.matcher(sendCommand("info", "").getOutput());
+        int currentProductsCountServer = 0;
+        while (matcherServer.find()) {
+            currentProductsCountServer = Integer.parseInt(matcherServer.group());
+        }
+
+        assertEquals(currentProductsCountNaive, currentProductsCountClient);
+        assertEquals(currentProductsCountClient, currentProductsCountServer);
     }
 
     private CommandResult sendCommand(String commandName, String commandInput) throws IOException, ClassNotFoundException {

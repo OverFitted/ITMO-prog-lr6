@@ -66,7 +66,11 @@ public class App {
 
         Scanner scanner = new Scanner(input);
         for (ArgDescriptor argDescriptor : argDescriptors) {
-            this.argHandlers.get(argDescriptor.type()).accept(scanner);
+            try {
+                this.argHandlers.get(argDescriptor.type()).accept(scanner);
+            } catch (IllegalArgumentException e) {
+                return new CommandResult(4, null, "Ошибка ввода аргументов");
+            }
         }
 
         return command.execute(this, args.toArray());
