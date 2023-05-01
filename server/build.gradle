@@ -36,6 +36,9 @@ test {
 sourceSets.main.java.srcDirs =  ['src/main/java/exmp/']
 compileJava.options.encoding = 'UTF-8'
 
+application {
+    mainClass = "exmp.ServerApp"
+}
 
 tasks.register('runServer', ShadowJar) {
     group = 'shadow'

@@ -33,11 +33,15 @@ test {
 sourceSets.main.java.srcDirs = ['src/main/java/exmp/']
 compileJava.options.encoding = 'UTF-8'
 
+application {
+    mainClass = "exmp.ClientApp"
+}
+
 tasks.register('runClient', ShadowJar) {
     group = 'shadow'
-    mainClassName = 'exmp.client.ClientApp'
+    mainClassName = 'exmp.ClientApp'
     archiveFileName = "ClientApp.jar"
     manifest {
-        attributes 'Main-Class': 'exmp.client.ClientApp'
+        attributes 'Main-Class': 'exmp.ClientApp'
     }
 }
